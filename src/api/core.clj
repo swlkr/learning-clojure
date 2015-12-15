@@ -1,11 +1,12 @@
 (ns api.core
   (:require [compojure.core :refer :all]
-            [compojure.route :as route]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
             [ring.middleware.json :as middleware]
             [compojure.handler :as handler]
             [ragtime.jdbc :as jdbc]
-            [ragtime.repl :as repl]))
+            [ragtime.repl :as repl]
+            [api.routes.users :as users]
+            [api.routes.root :as root]))
 
 ; migrations
 (defn load-config []
@@ -18,18 +19,13 @@
 (defn rollback []
   (repl/rollback (load-config)))
 
+; routes
 (defroutes app-routes
-  (GET "/" []
-    {:status 200
-     :body {:status "alive"}})
-  (GET "/test" []
-      {:status 200
-       :body {:hello "world"}})
-  (POST "/names" request
-    (let [name (get-in request [:body :name])]
-      {:status 200
-       :body {:name name}}))
-  (route/not-found "Not Found"))
+  users/routes
+  root/routes
+  (route/not-found
+    {:status 404
+     :body {:message "not found!"}}))
 
 (def app
   (-> (handler/site app-routes)
