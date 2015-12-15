@@ -22,10 +22,7 @@
 ; routes
 (defroutes app-routes
   users/routes
-  root/routes
-  (route/not-found
-    {:status 404
-     :body {:message "not found!"}}))
+  root/routes)
 
 (def app
   (-> (handler/site app-routes)
