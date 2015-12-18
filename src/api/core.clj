@@ -1,12 +1,12 @@
 (ns api.core
-  (:require [compojure.core :refer :all]
-            [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
-            [ring.middleware.json :as middleware]
+  (:require [compojure.core :refer [defroutes]]
+            [ring.middleware.json :as ring-json]
             [compojure.handler :as handler]
             [ragtime.jdbc :as jdbc]
             [ragtime.repl :as repl]
             [api.routes.users :as users]
-            [api.routes.root :as root]))
+            [api.routes.root :as root]
+            [api.functions.db :as db]))
 
 ; migrations
 (defn load-config []
@@ -24,7 +24,23 @@
   users/routes
   root/routes)
 
+(defn wrap-database-exception [handler]
+  (fn [request]
+    (try
+      (handler request)
+      (catch clojure.lang.ExceptionInfo e
+        {:status 400 :body (.getMessage e)}))))
+
+(defn wrap-fallback-exception [handler]
+  (fn [request]
+    (try
+      (handler request)
+      (catch Exception e
+        {:status 500 :body "Something isn't quite right"}))))
+
 (def app
-  (-> (handler/site app-routes)
-      (middleware/wrap-json-body {:keywords? true})
-      (middleware/wrap-json-response)))
+  (-> (handler/api app-routes)
+      (ring-json/wrap-json-body {:keywords? true})
+      (ring-json/wrap-json-response)
+      (wrap-database-exception)
+      (wrap-fallback-exception)))
