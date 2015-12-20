@@ -6,11 +6,11 @@
             [ragtime.repl :as repl]
             [api.routes.users :as users]
             [api.routes.root :as root]
-            [api.functions.db :as db]))
+            [api.config :as config]))
 
 ; migrations
 (defn load-config []
-  {:datastore (jdbc/sql-database "jdbc:postgresql://localhost/simple-ajax")
+  {:datastore (jdbc/sql-database (str "jdbc:postgresql:" config/connection-string))
    :migrations (jdbc/load-resources "migrations")})
 
 (defn migrate []
@@ -24,23 +24,15 @@
   users/routes
   root/routes)
 
-(defn wrap-database-exception [handler]
-  (fn [request]
-    (try
-      (handler request)
-      (catch clojure.lang.ExceptionInfo e
-        {:status 400 :body (.getMessage e)}))))
-
 (defn wrap-fallback-exception [handler]
   (fn [request]
     (try
       (handler request)
       (catch Exception e
-        {:status 500 :body "Something isn't quite right"}))))
+        {:status 500 :body (.getMessage e)}))))
 
 (def app
   (-> (handler/api app-routes)
       (ring-json/wrap-json-body {:keywords? true})
       (ring-json/wrap-json-response)
-      (wrap-database-exception)
       (wrap-fallback-exception)))
