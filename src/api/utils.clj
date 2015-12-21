@@ -19,3 +19,9 @@
   (if (nil? error)
     (f val)
     [error nil]))
+
+(defn parse-int [s & {:keys [fallback] :or {fallback 0}}]
+  (try
+    (Integer/parseInt s)
+    (catch java.lang.NumberFormatException e
+      fallback)))

@@ -24,6 +24,7 @@
   users/routes
   root/routes)
 
+; middleware
 (defn wrap-fallback-exception [handler]
   (fn [request]
     (try
@@ -31,8 +32,14 @@
       (catch Exception e
         {:status 500 :body (.getMessage e)}))))
 
+(defn simple-logging-middleware [handler]
+  (fn [request]
+    (println request)
+    (handler request)))
+
 (def app
   (-> (handler/api app-routes)
       (ring-json/wrap-json-body {:keywords? true})
       (ring-json/wrap-json-response)
+      (simple-logging-middleware)
       (wrap-fallback-exception)))

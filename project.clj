@@ -8,7 +8,8 @@
                  [ring/ring-json "0.4.0"]
                  [org.postgresql/postgresql "9.4-1201-jdbc41"]
                  [yesql "0.5.1"]
-                 [ragtime "0.5.2"]]
+                 [ragtime "0.5.2"]
+                 [org.clojure/tools.logging "0.3.1"]]
   :plugins [[lein-ring "0.9.7"]]
   :ring {:handler api.core/app}
   :profiles

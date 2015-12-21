@@ -23,14 +23,10 @@
       [nil params]
       ["Please make sure that your password confirmation matches" nil])))
 
-(defn validate-insert [params]
+(defn validate [params]
   (->> (validate-email params)
        (bind-error validate-password)
        (bind-error validate-confirm-password)))
-
-(defn validate-update [params]
-  (->> (validate-email params)
-       (bind-error validate-password)))
 
 (defn strip-password [params]
   (dissoc params :password))
