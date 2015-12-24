@@ -20,16 +20,11 @@ insert into users (
 delete from users
 where id = :id
 
--- name: update-user-email<!
--- Updates a user's email
+-- name: update-user<!
+-- Updates a user
 update users
-set email = :email
-where id = :id
-
--- name: update-user-password<!
--- Updates a user's password
-update users
-set password = coalesce(:password, password)
+set email = coalesce(:email, email),
+    password = coalesce(:password, password)
 where id = :id
 
 -- name: get-user

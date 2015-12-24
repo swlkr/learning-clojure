@@ -3,7 +3,7 @@
             [compojure.coercions :refer [as-int]]
             [api.config :as config]
             [api.utils :refer [bind-error parse-int]]
-            [api.models.users :refer [validate validate-email validate-password strip-password]]
+            [api.models.users :refer [validate strip-password]]
             [api.db :as db]))
 
 (defn list-users [limit offset]
@@ -23,21 +23,18 @@
               (first)
               (strip-password))})
 
-(defn update-password [id password]
-  {:status 200
-   :body (->> (validate-password {:id id :password password})
-              (bind-error db/update-user-password<!)
-              (strip-password))})
-
-(defn update-email [id email]
-  {:status 200
-   :body (->> (validate-email {:id id :email email})
-              (bind-error db/update-user-email<!)
-              (strip-password))})
+(defn update-user [id user]
+  (let [db-user (first (db/get-user {:id id}))]
+    {:status 200
+     :body (->> (merge db-user user {:confirm-password (or (:password user) (:password db-user))})
+                (validate)
+                (bind-error db/update-user<!)
+                (strip-password))}))
 
 (defn delete-user [id]
   {:status 200
-   :body (db/delete-user<! {:id id})})
+   :body (->> (db/delete-user<! {:id id})
+              (bind-error strip-password))})
 
 (defroutes routes
   (context "/users" []
@@ -47,6 +44,5 @@
       (context "/:id" [id :<< as-int]
         (defroutes user-routes
           (GET "/" [] (get-user id))
-          (PUT "/password" {body :body} (update-password id (:password body)))
-          (PUT "/email" {body :body} (update-email id (:email body)))
+          (PUT "/" {body :body} (update-user id body))
           (DELETE "/" [] (delete-user id)))))))

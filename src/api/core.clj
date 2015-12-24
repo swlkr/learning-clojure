@@ -49,10 +49,6 @@
       (println (str (-> request-method name upper-case) " " uri " " (-> response :status color-status)))
       response)))
 
-  (fn [request]
-    (println request)
-    (handler request)))
-
 (def app
   (-> (handler/api app-routes)
       (ring-json/wrap-json-body {:keywords? true})

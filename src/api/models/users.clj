@@ -29,4 +29,6 @@
        (bind-error validate-confirm-password)))
 
 (defn strip-password [params]
-  (dissoc params :password))
+  (if (contains? params :password)
+    (dissoc params :password)
+    params))
