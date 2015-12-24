@@ -1,12 +1,15 @@
 (ns api.core
-  (:require [compojure.core :refer [defroutes]]
+  (:require [clojure.string :refer [upper-case]]
+            [compojure.core :refer [defroutes]]
             [ring.middleware.json :as ring-json]
             [compojure.handler :as handler]
             [ragtime.jdbc :as jdbc]
             [ragtime.repl :as repl]
             [api.routes.users :as users]
             [api.routes.root :as root]
-            [api.config :as config]))
+            [api.config :as config]
+            [clojure.tools.logging :as log]
+            [io.aviso.ansi :refer [bold bold-red bold-green bold-yellow]]))
 
 ; migrations
 (defn load-config []
@@ -32,7 +35,20 @@
       (catch Exception e
         {:status 500 :body (.getMessage e)}))))
 
-(defn simple-logging-middleware [handler]
+(defn color-status [status]
+  (cond
+    (< status 300) (bold-green status)
+    (< status 500) (bold-yellow status)
+    (< status 600) (bold-red status)
+    :else (bold status)))
+
+(defn log-request [handler]
+  (fn [request]
+    (let [{:keys [uri request-method]} request
+          response (handler request)]
+      (println (str (-> request-method name upper-case) " " uri " " (-> response :status color-status)))
+      response)))
+
   (fn [request]
     (println request)
     (handler request)))
@@ -41,5 +57,5 @@
   (-> (handler/api app-routes)
       (ring-json/wrap-json-body {:keywords? true})
       (ring-json/wrap-json-response)
-      (simple-logging-middleware)
+      (log-request)
       (wrap-fallback-exception)))
