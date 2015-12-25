@@ -1,5 +1,6 @@
 (ns api.models.users
-  (:require [api.utils :refer [valid-email? between? bind-error]]))
+  (:require [api.utils :refer [valid-email? between? bind-error]]
+            [crypto.password.scrypt :as password]))
 
 (def min-length 13)
 (def max-length 50)
@@ -22,6 +23,12 @@
     (if (= password confirm-password)
       [nil params]
       ["Please make sure that your password confirmation matches" nil])))
+
+(defn encrypt-password [params]
+  "Hashes the password with scrypt"
+  (if (contains? params :password)
+    [nil (update-in params [:password] password/encrypt)]
+    [nil params]))
 
 (defn validate [params]
   (->> (validate-email params)

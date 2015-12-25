@@ -3,7 +3,7 @@
             [compojure.coercions :refer [as-int]]
             [api.config :as config]
             [api.utils :refer [bind-error parse-int]]
-            [api.models.users :refer [validate strip-password]]
+            [api.models.users :refer [validate strip-password encrypt-password]]
             [api.db :as db]))
 
 (defn list-users [limit offset]
@@ -14,6 +14,7 @@
 (defn create-user [user]
   {:status 200
    :body (->> (validate user)
+              (bind-error encrypt-password)
               (bind-error db/insert-user<!)
               (strip-password))})
 
