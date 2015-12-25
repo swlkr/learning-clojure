@@ -34,7 +34,7 @@
 (defn delete-user [id]
   {:status 200
    :body (->> (db/delete-user<! {:id id})
-              (bind-error strip-password))})
+              (strip-password))})
 
 (defroutes routes
   (context "/users" []
