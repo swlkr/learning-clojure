@@ -8,8 +8,8 @@
             [api.routes.users :as users]
             [api.routes.root :as root]
             [api.config :as config]
-            [clojure.tools.logging :as log]
-            [io.aviso.ansi :refer [bold bold-red bold-green bold-yellow]]))
+            [io.aviso.ansi :refer [bold bold-red bold-green bold-yellow]]
+            [clj-time.core :as t]))
 
 ; migrations
 (defn load-config []
@@ -42,16 +42,28 @@
     (< status 600) (bold-red status)
     :else (bold status)))
 
+(defn log-str [request response start-time]
+  (str
+    (-> request :request-method name upper-case)
+    " "
+    (:uri request)
+    " "
+    (-> response :status color-status)
+    " "
+    (t/in-millis (t/interval start-time (t/now)))
+    "ms"))
+
 (defn log-request [handler]
   (fn [request]
-    (let [{:keys [uri request-method]} request
+    (let [start-time (t/now)
+          {:keys [uri request-method]} request
           response (handler request)]
-      (println (str (-> request-method name upper-case) " " uri " " (-> response :status color-status)))
+      (println (log-str request response start-time))
       response)))
 
 (def app
   (-> (handler/api app-routes)
+      (wrap-fallback-exception)
       (ring-json/wrap-json-body {:keywords? true})
       (ring-json/wrap-json-response)
-      (log-request)
-      (wrap-fallback-exception)))
+      (log-request)))

@@ -9,8 +9,9 @@
                  [org.postgresql/postgresql "9.4-1201-jdbc41"]
                  [yesql "0.5.1"]
                  [ragtime "0.5.2"]
-                 [org.clojure/tools.logging "0.3.1"]
-                 [io.aviso/pretty "0.1.20"]]
+                 [io.aviso/pretty "0.1.20"]
+                 [crypto-password "0.1.3"]
+                 [clj-time "0.11.0"]]
   :plugins [[lein-ring "0.9.7"]]
   :ring {:handler api.core/app}
   :profiles
