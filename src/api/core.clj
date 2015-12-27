@@ -9,7 +9,9 @@
             [api.routes.root :as root]
             [api.config :as config]
             [io.aviso.ansi :refer [bold bold-red bold-green bold-yellow]]
-            [clj-time.core :as t]))
+            [clj-time.core :as t]
+            [org.httpkit.server :refer [run-server]]
+            [ring.middleware.reload :as reload]))
 
 ; migrations
 (defn load-config []
@@ -35,6 +37,8 @@
       (catch Exception e
         {:status 500 :body (.getMessage e)}))))
 
+; log middleware
+; TODO move this to it's own package on clojars
 (defn color-status [status]
   (cond
     (< status 300) (bold-green status)
@@ -61,9 +65,16 @@
       (println (log-str request response start-time))
       response)))
 
+(def dev? (= config/clj-env "development"))
+
 (def app
   (-> (handler/api app-routes)
       (wrap-fallback-exception)
       (ring-json/wrap-json-body {:keywords? true})
       (ring-json/wrap-json-response)
+      (#(if dev? (reload/wrap-reload %) %))
       (log-request)))
+
+(defn -main [& args]
+  (println (str "Server running on port " config/port))
+  (run-server app {:port config/port}))
