@@ -11,7 +11,8 @@
                  [ragtime "0.5.2"]
                  [io.aviso/pretty "0.1.20"]
                  [crypto-password "0.1.3"]
-                 [clj-time "0.11.0"]]
+                 [clj-time "0.11.0"]
+                 [envvar "1.1.0"]]
   :plugins [[lein-ring "0.9.7"]]
   :ring {:handler api.core/app}
   :profiles
