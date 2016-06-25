@@ -2,9 +2,13 @@
 
 ## Prerequisites
 
+```bash
 $ brew cask install java
-$ brew instal leiningen
+$ brew install leiningen
+```
 
 ## Running
 
+```bash
 $ lein ring server
+```
